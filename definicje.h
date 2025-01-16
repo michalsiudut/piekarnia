@@ -1,19 +1,22 @@
 #ifndef COMMON_H
 #define COMMON_H
 
-#define NUM_PRODUCTS 15 // Liczba różnych produktów (P > 10)
+#define NUM_PRODUCTS 15 // Liczba różnych produktów
 
 #define CZAS_WYPIEKU 2 //czas wypieku
-// Klucze IPC
-#define KEY_SHM 1234    // Klucz do pamięci dzielonej
-#define KEY_SEM 5678    // Klucz do semaforów
-#define KEY_MSG 8721    // Klucz do kolejki komunikatów
 
-// Parametry piekarni
+// Klucze 
+#define KEY_SHM 1234    // pamięc dzielona
+#define KEY_SEM 5678    // semafory
+#define KEY_MSG 8721    // kolejka kom
+
+
+#define MAX_SZTUKI 5 // maksymalna ilosc wypiekow na podajniku
+
 #define NUM_CLIENTS 10  // Liczba klientów
-#define SHM_SIZE 1024   // Rozmiar pamięci dzielonej (w bajtach)
+#define SHM_SIZE 1024   // Rozmiar pamięci dzielonej 
 
-// Struktura dla kolejki komunikatów
+
 typedef struct {
     long mtype; 
     char nazwa[20];        // nazwa wypieku
@@ -22,3 +25,4 @@ typedef struct {
 } Wypieki;
 
 #endif // COMMON_H
+

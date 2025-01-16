@@ -3,6 +3,7 @@
 #include <unistd.h>
 #include <sys/ipc.h>
 #include <sys/msg.h>
+#include <sys/sem.h>
 #include <time.h>
 #include <signal.h>
 #include <string.h>
@@ -10,8 +11,29 @@
 
 Wypieki losuj_wypiek();
 
+void init_semaphore(int semid) {
+    for(int i = 0; i < 16; i++){
+    if (semctl(semid, i, SETVAL, 5) == -1) {
+        perror("Błąd przy inicjalizacji semafora");
+        exit(1);
+    }
+    }
+}
+void P(int semid, int i, int x) {
+    struct sembuf op;
+    op.sem_num = x; // Semafor nr 0
+    op.sem_op = -i; // Zmniejsz wartość semafora
+    op.sem_flg = 0;
+    //printf("numer semafora: %d , pomniejszona wartosc smeafora: %d\n", x, i);
+    if (semop(semid, &op, 1) == -1) {
+        perror("Błąd przy operacji P()");
+        exit(1);
+    }
+}
 
 void usuniecie_kolejki(int sig) {
+    // uzyskanie dostepu do semaforow
+    int semid = semget(KEY_SEM, 1, 0666);
     // uzyskanie dostepu do kolejki
     int msgid = msgget(KEY_MSG, 0666);
     if (msgid < 0) {
@@ -25,6 +47,11 @@ void usuniecie_kolejki(int sig) {
     } else {
         printf("Kolejka komunikatów została usunięta.\n");
     }
+    // usuwanie semaforow
+    if (semctl(semid, 0, IPC_RMID) == -1) {
+        perror("Błąd przy usuwaniu semafora");
+        exit(1);
+    }
 
     exit(0);
 }
@@ -36,7 +63,7 @@ int losuj_liczbe(int min, int max) {
 }
 
 int main() {
-    int msgid;
+    int msgid, semid;
     Wypieki wypieki;
 
     // inicjalizacja generatora liczb losowych
@@ -49,10 +76,19 @@ int main() {
         exit(1);
     }
 
+
+    semid = semget(KEY_SEM, 16, IPC_CREAT | 0666);
+    if (semid == -1) {
+        perror("Błąd przy tworzeniu semafora");
+        exit(1);
+    }
+    init_semaphore(semid);
+
     printf("Piekarz: Rozpoczynam produkcję wypieków.\n");
 
     while (1) {
         wypieki = losuj_wypiek();
+        P(semid, wypieki.liczba_sztuk, wypieki.mtype);
         // wysylanie losowego wypieku od kolejki
         if (msgsnd(msgid, &wypieki, sizeof(wypieki)- sizeof(long), 0) < 0) {
             perror("Błąd przy wysyłaniu wiadomości");
@@ -137,7 +173,7 @@ Wypieki losuj_wypiek() {
             break;
     }
     wypiek.mtype = wybor;
-    wypiek.liczba_sztuk = losuj_liczbe(1,20);
+    wypiek.liczba_sztuk = losuj_liczbe(1,4); // od 1 do 4 sztuk
     wypiek.cena = wypiek.cena * wypiek.liczba_sztuk;
 
     return wypiek;
