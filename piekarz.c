@@ -6,43 +6,43 @@
 #include <time.h>
 #include <signal.h>
 #include <string.h>
-#include "definicje.h" 
+#include "definicje.h"
 
 Wypieki losuj_wypiek();
 
 
 void usuniecie_kolejki(int sig) {
-    // Uzyskanie dostępu do kolejki komunikatów
+    // uzyskanie dostepu do kolejki
     int msgid = msgget(KEY_MSG, 0666);
     if (msgid < 0) {
         perror("Błąd przy uzyskiwaniu dostępu do kolejki");
         exit(1);
     }
 
-    // Usuwanie kolejki komunikatów
+    // usuwanie kolejki
     if (msgctl(msgid, IPC_RMID, NULL) == -1) {
         perror("Błąd przy usuwaniu kolejki");
     } else {
         printf("Kolejka komunikatów została usunięta.\n");
     }
 
-    exit(0); // Zakończenie programu
+    exit(0);
 }
 
 
 
 int losuj_liczbe(int min, int max) {
-    return rand() % max + min;  
+    return rand() % max + min;
 }
 
 int main() {
     int msgid;
     Wypieki wypieki;
 
-    // Inicjalizacja generatora liczb losowych
+    // inicjalizacja generatora liczb losowych
     srand(time(NULL));
     signal(SIGINT, usuniecie_kolejki);
-    // Uzyskanie dostępu do kolejki komunikatów
+    // uzyskanie dostepu do kolejki
     msgid = msgget(KEY_MSG, IPC_CREAT | IPC_EXCL | 0666);
     if (msgid < 0) {
         perror("Błąd przy uzyskiwaniu dostępu do kolejki komunikatów");
@@ -53,7 +53,7 @@ int main() {
 
     while (1) {
         wypieki = losuj_wypiek();
-        // Wysyłanie wiadomości do kolejki
+        // wysylanie losowego wypieku od kolejki
         if (msgsnd(msgid, &wypieki, sizeof(wypieki)- sizeof(long), 0) < 0) {
             perror("Błąd przy wysyłaniu wiadomości");
             usuniecie_kolejki(SIGINT);
@@ -63,17 +63,16 @@ int main() {
         printf("Piekarz: Wyprodukowano produkt %s w ilości %d w cenie %d.\n",
                wypieki.nazwa, wypieki.liczba_sztuk, wypieki.cena);
 
-        
         sleep(CZAS_WYPIEKU); // 2 sekund na wypiek
     }
 
     return 0;
 }
 
-// Funkcja do zwracania losowego wypieku
+// funkcja zwraca losowy wypiek
 Wypieki losuj_wypiek() {
     Wypieki wypiek;
-    long wybor = losuj_liczbe(1,15);  // Losuje wypiek spośród 15 dostępnych produktów
+    long wybor = losuj_liczbe(1,15); // losowanie
 
     switch(wybor) {
         case 0:
