@@ -13,7 +13,7 @@ Wypieki losuj_wypiek();
 
 void init_semaphore(int semid) {
     for(int i = 0; i < 16; i++){
-    if (semctl(semid, i, SETVAL, 5) == -1) {
+    if (semctl(semid, i, SETVAL, MAX_SZTUKI) == -1) {
         perror("Błąd przy inicjalizacji semafora");
         exit(1);
     }
@@ -24,7 +24,7 @@ void P(int semid, int i, int x) {
     op.sem_num = x; // Semafor nr 0
     op.sem_op = -i; // Zmniejsz wartość semafora
     op.sem_flg = 0;
-    //printf("numer semafora: %d , pomniejszona wartosc smeafora: %d\n", x, i);
+    printf("numer semafora: %d , pomniejszona wartosc smeafora: %d\n", x, i);
     if (semop(semid, &op, 1) == -1) {
         perror("Błąd przy operacji P()");
         exit(1);
@@ -57,9 +57,8 @@ void usuniecie_kolejki(int sig) {
 }
 
 
-
 int losuj_liczbe(int min, int max) {
-    return rand() % max + min;
+    return rand() % (max - min + 1) + min;
 }
 
 int main() {
@@ -108,7 +107,7 @@ int main() {
 // funkcja zwraca losowy wypiek
 Wypieki losuj_wypiek() {
     Wypieki wypiek;
-    long wybor = losuj_liczbe(1,15); // losowanie
+    long wybor = losuj_liczbe(1,14); // losowanie%
 
     switch(wybor) {
         case 0:
@@ -116,7 +115,7 @@ Wypieki losuj_wypiek() {
             wypiek.cena = 3;
             break;
         case 1:
-            strcpy(wypiek.nazwa, "Chleb żytni");
+            strcpy(wypiek.nazwa, "Chleb zytni");
             wypiek.cena = 4;
             break;
         case 2:
@@ -128,7 +127,7 @@ Wypieki losuj_wypiek() {
             wypiek.cena = 5;
             break;
         case 4:
-            strcpy(wypiek.nazwa, "Bułki maślane");
+            strcpy(wypiek.nazwa, "Bułki maslane");
             wypiek.cena = 6;
             break;
         case 5:
@@ -160,7 +159,7 @@ Wypieki losuj_wypiek() {
             wypiek.cena = 13;
             break;
         case 12:
-            strcpy(wypiek.nazwa, "Pączki");
+            strcpy(wypiek.nazwa, "Paczki");
             wypiek.cena = 14;
             break;
         case 13:
