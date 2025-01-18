@@ -32,7 +32,7 @@ void V(int semid, int i, int x)
     }
 }
 
-void odbieraj_wypiek(int msgid, int semid, int ile_rzeczy)
+void odbieraj_wypiek(int msgid, int semid, int ile_rzeczy, int msgid_kasjer)
 {
 
     Wypieki wypieki;
@@ -97,12 +97,23 @@ void odbieraj_wypiek(int msgid, int semid, int ile_rzeczy)
         czy_odebrano = 1;
         czy_wystarczajaco = 1;
     }
-    sleep(10);
+    sleep(5);
+
+
+    
     printf("\tODEBRANE RZECZY PRZEZ KLIENTA----%d---------:\n", pid_klienta);
     for(int i = 0; i < z ; i++){
-    printf("%s | %d | %d\n", wypieki_tab[i].nazwa, wypieki_tab[i].liczba_sztuk, wypieki_tab[i].cena);        
-
+    wypieki_tab[i].mtype = pid_klienta;
+    printf("%s | %d | %d\n", wypieki_tab[i].nazwa, wypieki_tab[i].liczba_sztuk, wypieki_tab[i].cena);  
+      if (msgsnd(msgid_kasjer, &wypieki_tab[i], sizeof(wypieki_tab[i]) - sizeof(long), 0) == -1)
+    {
+        perror("Błąd przy wysyłaniu tablicy wypieków do kasjera");
+        exit(1);
     }
+   
+    }
+    printf("\tTablica wypieków została wysłana do kasjera.\n");
+
 }
 
 int main()
@@ -126,11 +137,17 @@ int main()
     msgid = msgget(key, 0666);
     if (msgid < 0)
     {
+        perror("Błąd przy uzyskiwaniu dostępu do kolejki komunikatów!!!!");
+        exit(1);
+    }
+    // uzyskiwanie dostepu do kolejki klient- kasjer
+    int msgid_kasjer = msgget(KEY_MSG_KLIENT_KASJER, 0666);
+    if (msgid_kasjer < 0) {
         perror("Błąd przy uzyskiwaniu dostępu do kolejki komunikatów");
         exit(1);
     }
     //printf("------Klient: %d zaczyna robic zakupy\n", getpid());
-    odbieraj_wypiek(msgid, semid, ile_rzeczy);
+    odbieraj_wypiek(msgid, semid, ile_rzeczy,msgid_kasjer);
 
     return 0;
 }

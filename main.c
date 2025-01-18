@@ -14,6 +14,19 @@ int losuj_liczbe(int min, int max) {
 }
 
 
+void sem_op(int sem_id, int op) {
+    struct sembuf sops;
+    sops.sem_num = 0;
+    sops.sem_op = op;
+    sops.sem_flg = 0;
+    if (semop(sem_id, &sops, 1) == -1) {
+        perror("Błąd operacji na semaforze");
+        exit(1);
+    }
+}
+
+
+
 int main() {
 
     srand(time(NULL));
@@ -26,6 +39,35 @@ int main() {
         exit(1);
     }
 
+    int msgid_kasjer = msgget(KEY_MSG_KLIENT_KASJER, IPC_CREAT | IPC_EXCL | 0666); // twprzenie kolejki kom z klienta do kasjera
+    if (msgid_kasjer < 0) {
+        perror("Błąd przy uzyskiwaniu dostępu do kolejki komunikatów");
+        exit(1);
+    }
+
+
+    pid_t kasjer_pid = fork();
+    if (kasjer_pid == 0) {
+        execl("./kasjer", "kasjer", NULL); // Uruchomienie programu kasjera
+        perror("Błąd przy uruchamianiu kasjera");
+        exit(1);
+    }
+
+
+     // Inicjalizacja semafora
+    int sem_id = semget(SEM_KEY_DO_SKLEPU, 1, IPC_CREAT | 0666);
+    if (sem_id == -1) {
+        perror("Błąd tworzenia semafora");
+        exit(1);
+    }
+
+    // Ustawienie wartości początkowej semafora
+    if (semctl(sem_id, 0, SETVAL, MAX_KLIENTOW) == -1) {
+        perror("Błąd ustawiania wartości semafora");
+        exit(1);
+    }
+
+
     sleep(3); // dajemy piekarzowi przed otwarciem piekarni upiec pare wypiekow
     time_t start_time = time(NULL);
     int czas_trwania = 30; // Symulacja trwa 30 sekund
@@ -35,6 +77,7 @@ int main() {
     while (time(NULL) - start_time < czas_trwania) {
         klienty_pids[i] = fork();
         if (klienty_pids[i] == 0) {
+            sem_op(sem_id, -1); // wchodzenie klienta do sklepu
             execl("./klient", "klient", NULL); // Uruchomienie programu klienta
             perror("Błąd przy uruchamianiu klienta");
             exit(1);
@@ -43,17 +86,27 @@ int main() {
         sleep(randomowy_czas_przyjscia_klientow);
         i++;
     }
+
+
+    
     for (int j = 0; j < i; j++) {
         waitpid(klienty_pids[j], NULL, 0);
     }
 
-    printf("Koniec czasu - zamykamy piekarnię.\n");
-    fflush(stdout);
 
     // Wysłanie sygnału do piekarza, aby zakończył pracę
     kill(piekarz_pid, SIGTERM);
-    
+    // jak i do kasjera
+    kill(kasjer_pid, SIGTERM);
+    // czekamy na nich
+    waitpid(kasjer_pid, NULL, 0);
     waitpid(piekarz_pid, NULL, 0);   // Czekanie na piekarza
+
+    if (semctl(sem_id, 0, IPC_RMID) == -1) {
+        perror("Błąd usuwania semafora");
+        exit(1);
+    }
+    
     printf("Symulacja zakończona.\n");
     return 0;
 }

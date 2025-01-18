@@ -2,6 +2,7 @@
 #define COMMON_H
 
 #define NUM_PRODUCTS 15 // Liczba różnych produktów
+#define SEM_KEY_DO_SKLEPU 3112 //semafor trzymajacy max 5 klientow w sklepie
 
 #define CZAS_WYPIEKU 1 //czas wypieku
 #define MAX_WYPIEKI 4 //maxymalna ilosc wypiekow na raz
@@ -9,7 +10,9 @@
 #define KEY_SHM 1234    // pamięc dzielona
 #define KEY_SEM 5678    // semafory
 #define KEY_MSG 3121    // kolejka kom
+#define KEY_MSG_KLIENT_KASJER 3544    // kolejka kom
 
+#define MAX_KLIENTOW 5
 
 #define MAX_SZTUKI 15 // maksymalna ilosc wypiekow na podajniku
 
