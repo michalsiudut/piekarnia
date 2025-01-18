@@ -69,6 +69,7 @@ int main() {
     // inicjalizacja generatora liczb losowych
     srand(time(NULL));
     signal(SIGINT, usuniecie_kolejki);
+    signal(SIGTERM, usuniecie_kolejki);
     // uzyskanie dostepu do kolejki
     msgid = msgget(KEY_MSG, IPC_CREAT | IPC_EXCL | 0666);
     if (msgid < 0) {
@@ -99,7 +100,7 @@ int main() {
         printf("Piekarz: Wyprodukowano produkt %s w ilości %d w cenie %d.\n",
                wypieki.nazwa, wypieki.liczba_sztuk, wypieki.cena);
 
-        usleep(400000);; // 0.4 sekund na wypiek
+        usleep(300000);; // 0.3 sekund na wypiek
     }
 
     return 0;

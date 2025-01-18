@@ -13,8 +13,9 @@
 
 #define MAX_SZTUKI 15 // maksymalna ilosc wypiekow na podajniku
 
-#define NUM_CLIENTS 3  // Liczba klientów
+#define NUM_CLIENTS 100  // Liczba klientów
 #define SHM_SIZE 1024   // Rozmiar pamięci dzielonej 
+
 
 
 typedef struct {
@@ -26,4 +27,3 @@ typedef struct {
 
 
 #endif // COMMON_H
-
