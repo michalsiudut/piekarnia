@@ -5,6 +5,7 @@
 #include <sys/msg.h>
 #include <sys/sem.h>
 #include <time.h>
+#include <unistd.h>
 #include <signal.h>
 #include <string.h>
 #include "definicje.h"
@@ -24,7 +25,7 @@ void P(int semid, int i, int x) {
     op.sem_num = x; // Semafor nr 0
     op.sem_op = -i; // Zmniejsz wartość semafora
     op.sem_flg = 0;
-    printf("numer semafora: %d , pomniejszona wartosc smeafora: %d\n", x, i);
+    //printf("numer semafora: %d , pomniejszona wartosc smeafora: %d\n", x, i);
     if (semop(semid, &op, 1) == -1) {
         perror("Błąd przy operacji P()");
         exit(1);
@@ -98,7 +99,7 @@ int main() {
         printf("Piekarz: Wyprodukowano produkt %s w ilości %d w cenie %d.\n",
                wypieki.nazwa, wypieki.liczba_sztuk, wypieki.cena);
 
-        sleep(CZAS_WYPIEKU); // 2 sekund na wypiek
+        usleep(400000);; // 0.4 sekund na wypiek
     }
 
     return 0;

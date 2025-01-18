@@ -8,12 +8,12 @@
 // Klucze 
 #define KEY_SHM 1234    // pamięc dzielona
 #define KEY_SEM 5678    // semafory
-#define KEY_MSG 2112    // kolejka kom
+#define KEY_MSG 3121    // kolejka kom
 
 
-#define MAX_SZTUKI 10 // maksymalna ilosc wypiekow na podajniku
+#define MAX_SZTUKI 15 // maksymalna ilosc wypiekow na podajniku
 
-#define NUM_CLIENTS 10  // Liczba klientów
+#define NUM_CLIENTS 3  // Liczba klientów
 #define SHM_SIZE 1024   // Rozmiar pamięci dzielonej 
 
 
