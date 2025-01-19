@@ -10,9 +10,9 @@
 #define KEY_SHM 1234    // pamięc dzielona
 #define KEY_SEM 5678    // semafory
 #define KEY_MSG 3121    // kolejka kom
-#define KEY_MSG_KLIENT_KASJER 3544    // kolejka kom
+#define KEY_MSG_KLIENT_KASJER 3544    // kolejka kom kleint - kasjer
 
-#define MAX_KLIENTOW 5
+#define MAX_KLIENTOW 9
 
 #define MAX_SZTUKI 15 // maksymalna ilosc wypiekow na podajniku
 
@@ -26,7 +26,16 @@ typedef struct {
     char nazwa[20];        // nazwa wypieku
     int liczba_sztuk;      // liczba sztuk
     int cena;              // cena
+    int pid_klienta;
+    int liczba_obrotow;
 } Wypieki;
+
+#define RESET "\033[0m"
+#define RED "\033[31m"
+#define GREEN "\033[32m"
+#define YELLOW "\033[33m"
+#define BLUE "\033[34m"
+#define CYAN "\033[36m"
 
 
 #endif // COMMON_H

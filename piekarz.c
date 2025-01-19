@@ -15,7 +15,7 @@ Wypieki losuj_wypiek();
 void init_semaphore(int semid) {
     for(int i = 0; i < 16; i++){
     if (semctl(semid, i, SETVAL, MAX_SZTUKI) == -1) {
-        perror("Błąd przy inicjalizacji semafora");
+        perror(GREEN"Błąd przy inicjalizacji semafora"RESET);
         exit(1);
     }
     }
@@ -27,7 +27,7 @@ void P(int semid, int i, int x) {
     op.sem_flg = 0;
     //printf("numer semafora: %d , pomniejszona wartosc smeafora: %d\n", x, i);
     if (semop(semid, &op, 1) == -1) {
-        perror("Błąd przy operacji P()");
+        perror(GREEN"Błąd przy operacji P()"RESET);
         exit(1);
     }
 }
@@ -38,19 +38,19 @@ void usuniecie_kolejki(int sig) {
     // uzyskanie dostepu do kolejki
     int msgid = msgget(KEY_MSG, 0666);
     if (msgid < 0) {
-        perror("Błąd przy uzyskiwaniu dostępu do kolejki");
+        perror(GREEN"Błąd przy uzyskiwaniu dostępu do kolejki"RESET);
         exit(1);
     }
 
     // usuwanie kolejki
     if (msgctl(msgid, IPC_RMID, NULL) == -1) {
-        perror("Błąd przy usuwaniu kolejki");
+        perror(GREEN"Błąd przy usuwaniu kolejki"RESET);
     } else {
-        printf("Kolejka komunikatów została usunięta.\n");
+        printf(GREEN"Kolejka komunikatów została usunięta.\n"RESET);
     }
     // usuwanie semaforow
     if (semctl(semid, 0, IPC_RMID) == -1) {
-        perror("Błąd przy usuwaniu semafora");
+        perror(GREEN"Błąd przy usuwaniu semafora"RESET);
         exit(1);
     }
 
@@ -73,31 +73,31 @@ int main() {
     // uzyskanie dostepu do kolejki
     msgid = msgget(KEY_MSG, IPC_CREAT | IPC_EXCL | 0666);
     if (msgid < 0) {
-        perror("Błąd przy uzyskiwaniu dostępu do kolejki komunikatów");
+        perror(GREEN"Błąd przy uzyskiwaniu dostępu do kolejki komunikatów"RESET);
         exit(1);
     }
 
 
     semid = semget(KEY_SEM, 16, IPC_CREAT | 0666);
     if (semid == -1) {
-        perror("Błąd przy tworzeniu semafora");
+        perror(GREEN"Błąd przy tworzeniu semafora"RESET);
         exit(1);
     }
     init_semaphore(semid);
 
-    printf("Piekarz: Rozpoczynam produkcję wypieków.\n");
+    printf(GREEN"Piekarz: Rozpoczynam produkcję wypieków.\n"RESET);
 
     while (1) {
         wypieki = losuj_wypiek();
         P(semid, wypieki.liczba_sztuk, wypieki.mtype);
         // wysylanie losowego wypieku od kolejki
         if (msgsnd(msgid, &wypieki, sizeof(wypieki)- sizeof(long), 0) < 0) {
-            perror("Błąd przy wysyłaniu wiadomości");
+            perror(GREEN"Błąd przy wysyłaniu wiadomości"RESET);
             usuniecie_kolejki(SIGINT);
             break;
         }
 
-        printf("Piekarz: Wyprodukowano produkt %s w ilości %d w cenie %d.\n",
+        printf(GREEN"Piekarz: Wyprodukowano produkt %s w ilości %d w cenie %d."RESET"\n",
                wypieki.nazwa, wypieki.liczba_sztuk, wypieki.cena);
 
         usleep(300000);; // 0.3 sekund na wypiek

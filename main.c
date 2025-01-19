@@ -20,7 +20,7 @@ void sem_op(int sem_id, int op) {
     sops.sem_op = op;
     sops.sem_flg = 0;
     if (semop(sem_id, &sops, 1) == -1) {
-        perror("Błąd operacji na semaforze");
+        perror(RED"Błąd operacji na semaforze"RESET);
         exit(1);
     }
 }
@@ -30,7 +30,7 @@ void sem_op(int sem_id, int op) {
 int main() {
 
     srand(time(NULL));
-    printf("WITAMY W NASZEJ PIEKARNI\n");
+    printf(RED "WITAMY W NASZEJ PIEKARNI"RESET"\n");
 
     pid_t piekarz_pid = fork();
     if (piekarz_pid == 0) {
@@ -49,7 +49,7 @@ int main() {
     pid_t kasjer_pid = fork();
     if (kasjer_pid == 0) {
         execl("./kasjer", "kasjer", NULL); // Uruchomienie programu kasjera
-        perror("Błąd przy uruchamianiu kasjera");
+        perror(RED"Błąd przy uruchamianiu kasjera"RESET);
         exit(1);
     }
 
@@ -57,13 +57,13 @@ int main() {
      // Inicjalizacja semafora
     int sem_id = semget(SEM_KEY_DO_SKLEPU, 1, IPC_CREAT | 0666);
     if (sem_id == -1) {
-        perror("Błąd tworzenia semafora");
+        perror(RED"Błąd tworzenia semafora"RESET);
         exit(1);
     }
 
     // Ustawienie wartości początkowej semafora
     if (semctl(sem_id, 0, SETVAL, MAX_KLIENTOW) == -1) {
-        perror("Błąd ustawiania wartości semafora");
+        perror(RED"Błąd ustawiania wartości semafora"RESET);
         exit(1);
     }
 
@@ -79,7 +79,7 @@ int main() {
         if (klienty_pids[i] == 0) {
             sem_op(sem_id, -1); // wchodzenie klienta do sklepu
             execl("./klient", "klient", NULL); // Uruchomienie programu klienta
-            perror("Błąd przy uruchamianiu klienta");
+            perror(RED"Błąd przy uruchamianiu klienta"RESET);
             exit(1);
         }
         int randomowy_czas_przyjscia_klientow = losuj_liczbe(1, 5); // Nowi klienci co 1–5 sekund
@@ -103,10 +103,10 @@ int main() {
     waitpid(piekarz_pid, NULL, 0);   // Czekanie na piekarza
 
     if (semctl(sem_id, 0, IPC_RMID) == -1) {
-        perror("Błąd usuwania semafora");
+        perror(RED"Błąd usuwania semafora"RESET);
         exit(1);
     }
     
-    printf("Symulacja zakończona.\n");
+    printf(RED"Symulacja zakończona.\n" RESET);
     return 0;
 }

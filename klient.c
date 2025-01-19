@@ -27,7 +27,7 @@ void V(int semid, int i, int x)
     op.sem_flg = 0;
     if (semop(semid, &op, 1) == -1)
     {
-        perror("Błąd przy operacji V()");
+        perror(YELLOW"Błąd przy operacji V()"RESET );
         exit(1);
     }
 }
@@ -52,14 +52,14 @@ void odbieraj_wypiek(int msgid, int semid, int ile_rzeczy, int msgid_kasjer)
         {
             if (errno == ENOMSG)
             {
-                printf("\tKLIENT: %d Nie znaleziono wypieku, ktory klient chce kupic: %s\n",pid_klienta, wypieki_klienta.nazwa);
+                printf(YELLOW"KLIENT: %d Nie znaleziono wypieku, ktory klient chce kupic: %s"RESET "\n",pid_klienta, wypieki_klienta.nazwa);
                 czy_odebrano = 0;
                 wypieki.liczba_sztuk = 0;
                 wypieki.mtype = 0;
             }
             else
             {
-                perror("Błąd msgrcv");
+                perror(YELLOW"Błąd msgrcv"RESET );
             }
         }
         sleep(1); // symulacja odbierania wypieku przez klienta
@@ -69,18 +69,18 @@ void odbieraj_wypiek(int msgid, int semid, int ile_rzeczy, int msgid_kasjer)
 
 
         if (wartosc_semafora == -1) {
-            perror("Błąd przy pobieraniu wartości semafora");
+            perror(YELLOW"Błąd przy pobieraniu wartości semafora"RESET );
             exit(1);
         }
-        printf("\tile na tasmie: %d, a klient chcial: %d, TYP semafora: %d\n", ile_na_tasmie,wypieki_klienta.liczba_sztuk, wypieki.mtype);// WAZNE DO SPRAWDZNIAAAAAAAAAAA
+        //printf("\tile na tasmie: %d, a klient chcial: %d, TYP semafora: %d\n", ile_na_tasmie,wypieki_klienta.liczba_sztuk, wypieki.mtype);// WAZNE DO SPRAWDZNIAAAAAAAAAAA
 
 
         if(wypieki_klienta.liczba_sztuk <= ile_na_tasmie){
-            printf("\tKLIENT %d -----Odebrano produkt: %s | Ilość: %d | Cena: %d | TYP: %d\n",pid_klienta, wypieki.nazwa, wypieki_klienta.liczba_sztuk, wypieki_klienta.cena, wypieki.mtype);
+            printf(YELLOW"KLIENT %d -----Odebrano produkt: %s | Ilość: %d | Cena: %d | TYP: %d"RESET "\n",pid_klienta, wypieki.nazwa, wypieki_klienta.liczba_sztuk, wypieki_klienta.cena, wypieki.mtype);
             wypieki_tab[z] = wypieki_klienta;
             z++;
         }else{
-            printf("\tKLIENT %d ----Nie wystarczająco %s na taśmie\n",pid_klienta, wypieki_klienta.nazwa);
+            printf(YELLOW"KLIENT %d ----Nie wystarczająco %s na taśmie"RESET"\n",pid_klienta, wypieki_klienta.nazwa);
             czy_wystarczajaco = 0;
         }
 
@@ -92,7 +92,7 @@ void odbieraj_wypiek(int msgid, int semid, int ile_rzeczy, int msgid_kasjer)
 
         wartosc_semafora = semctl(semid, wypieki.mtype, GETVAL);    
         ile_na_tasmie = 15 - wartosc_semafora;
-        printf("\tile na tasmie: %d\n", ile_na_tasmie);// WAZNE DO SPRAWDZANIAAAAAAAAAAAAAAAAAAA
+        //printf("\tile na tasmie: %d\n", ile_na_tasmie);// WAZNE DO SPRAWDZANIAAAAAAAAAAAAAAAAAAA
         ile_rzeczy--;
         czy_odebrano = 1;
         czy_wystarczajaco = 1;
@@ -101,18 +101,18 @@ void odbieraj_wypiek(int msgid, int semid, int ile_rzeczy, int msgid_kasjer)
 
 
     
-    printf("\tODEBRANE RZECZY PRZEZ KLIENTA----%d---------:\n", pid_klienta);
+    printf(YELLOW"ODEBRANE RZECZY PRZEZ KLIENTA----%d---------:"RESET "\n", pid_klienta);
     for(int i = 0; i < z ; i++){
-    wypieki_tab[i].mtype = pid_klienta;
-    printf("%s | %d | %d\n", wypieki_tab[i].nazwa, wypieki_tab[i].liczba_sztuk, wypieki_tab[i].cena);  
+    wypieki_tab[i].pid_klienta = pid_klienta;
+    wypieki_tab[i].liczba_obrotow = z;
+    printf(YELLOW"%s | %d | %d"RESET"\n", wypieki_tab[i].nazwa, wypieki_tab[i].liczba_sztuk, wypieki_tab[i].cena);  
       if (msgsnd(msgid_kasjer, &wypieki_tab[i], sizeof(wypieki_tab[i]) - sizeof(long), 0) == -1)
     {
-        perror("Błąd przy wysyłaniu tablicy wypieków do kasjera");
+        perror(YELLOW"Błąd przy wysyłaniu tablicy wypieków do kasjera"RESET);
         exit(1);
     }
    
     }
-    printf("\tTablica wypieków została wysłana do kasjera.\n");
 
 }
 
@@ -129,7 +129,7 @@ int main()
     semid = semget(KEY_SEM, 1, 0);
     if (semid == -1)
     {
-        perror("Błąd przy uzyskiwaniu dostępu do semafora");
+        perror(YELLOW"Błąd przy uzyskiwaniu dostępu do semafora"RESET );
         exit(1);
     }
 
@@ -137,13 +137,13 @@ int main()
     msgid = msgget(key, 0666);
     if (msgid < 0)
     {
-        perror("Błąd przy uzyskiwaniu dostępu do kolejki komunikatów!!!!");
+        perror(YELLOW"Błąd przy uzyskiwaniu dostępu do kolejki komunikatów!!!!"RESET );
         exit(1);
     }
     // uzyskiwanie dostepu do kolejki klient- kasjer
     int msgid_kasjer = msgget(KEY_MSG_KLIENT_KASJER, 0666);
     if (msgid_kasjer < 0) {
-        perror("Błąd przy uzyskiwaniu dostępu do kolejki komunikatów");
+        perror(YELLOW"Błąd przy uzyskiwaniu dostępu do kolejki komunikatów"RESET );
         exit(1);
     }
     //printf("------Klient: %d zaczyna robic zakupy\n", getpid());
