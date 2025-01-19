@@ -76,7 +76,7 @@ int main() {
 
         // Przetwarzanie zakończone
         int sem_value = semctl(sem_id, 0, GETVAL);
-        printf(BLUE"Aktualna wartość semafora: %d"RESET "\n", sem_value);
+        printf(BLUE"Ilość miejsc w piekarni: %d"RESET "\n", sem_value);
         printf(BLUE"PARAGON DLA KLIENTA: %d"RESET "\n", wypieki.pid_klienta);
         int suma_cen = 0;
         for(int i = 0; i < wypieki.liczba_obrotow ; i++){

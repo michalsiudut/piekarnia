@@ -86,9 +86,11 @@ int main() {
     init_semaphore(semid);
 
     printf(GREEN"Piekarz: Rozpoczynam produkcję wypieków.\n"RESET);
-
+    int iterator = 0;
     while (1) {
         wypieki = losuj_wypiek();
+        Wypieki wszystkie_wypieki[500];
+        wszystkie_wypieki[iterator] = wypieki;
         P(semid, wypieki.liczba_sztuk, wypieki.mtype);
         // wysylanie losowego wypieku od kolejki
         if (msgsnd(msgid, &wypieki, sizeof(wypieki)- sizeof(long), 0) < 0) {
@@ -100,7 +102,8 @@ int main() {
         printf(GREEN"Piekarz: Wyprodukowano produkt %s w ilości %d w cenie %d."RESET"\n",
                wypieki.nazwa, wypieki.liczba_sztuk, wypieki.cena);
 
-        usleep(300000);; // 0.3 sekund na wypiek
+        usleep(200000);; // 0.3 sekund na wypiek
+        iterator++;
     }
 
     return 0;

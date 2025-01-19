@@ -31,12 +31,28 @@ int main() {
 
     srand(time(NULL));
     printf(RED "WITAMY W NASZEJ PIEKARNI"RESET"\n");
+    
+    pid_t main_pid = getpid(); // PID procesu głównego
+    if (setpgid(main_pid, 0) == -1) {
+        perror("Błąd podczas tworzenia grupy procesów");
+        exit(1);
+    }
 
     pid_t piekarz_pid = fork();
     if (piekarz_pid == 0) {
+        setpgid(0, main_pid);
         execl("./piekarz", "piekarz", NULL); // Uruchomienie programu piekarza
         perror("Błąd przy uruchamianiu piekarza");
         exit(1);
+    }
+
+    pid_t kierownik_pid = fork();
+    if (kierownik_pid == 0) {
+        setpgid(0, main_pid);
+        char main_pid_str[10];
+        snprintf(main_pid_str, sizeof(main_pid_str), "%d", main_pid); // Konwersja main_pid na string
+        execl("./kierownik", "kierownik", main_pid_str, NULL); // Przekazanie main_pid jako argument
+        perror("Błąd przy uruchamianiu kierownika");
     }
 
     int msgid_kasjer = msgget(KEY_MSG_KLIENT_KASJER, IPC_CREAT | IPC_EXCL | 0666); // twprzenie kolejki kom z klienta do kasjera
@@ -48,6 +64,7 @@ int main() {
 
     pid_t kasjer_pid = fork();
     if (kasjer_pid == 0) {
+        setpgid(0, main_pid);
         execl("./kasjer", "kasjer", NULL); // Uruchomienie programu kasjera
         perror(RED"Błąd przy uruchamianiu kasjera"RESET);
         exit(1);
@@ -77,12 +94,13 @@ int main() {
     while (time(NULL) - start_time < czas_trwania) {
         klienty_pids[i] = fork();
         if (klienty_pids[i] == 0) {
+            setpgid(0, main_pid);
             sem_op(sem_id, -1); // wchodzenie klienta do sklepu
             execl("./klient", "klient", NULL); // Uruchomienie programu klienta
             perror(RED"Błąd przy uruchamianiu klienta"RESET);
             exit(1);
         }
-        int randomowy_czas_przyjscia_klientow = losuj_liczbe(1, 5); // Nowi klienci co 1–5 sekund
+        int randomowy_czas_przyjscia_klientow = losuj_liczbe(1, 3); // Nowi klienci co 1–5 sekund
         sleep(randomowy_czas_przyjscia_klientow);
         i++;
     }
@@ -101,6 +119,7 @@ int main() {
     // czekamy na nich
     waitpid(kasjer_pid, NULL, 0);
     waitpid(piekarz_pid, NULL, 0);   // Czekanie na piekarza
+    waitpid(kierownik_pid, NULL, 0);   // Czekanie na kieronwika
 
     if (semctl(sem_id, 0, IPC_RMID) == -1) {
         perror(RED"Błąd usuwania semafora"RESET);
