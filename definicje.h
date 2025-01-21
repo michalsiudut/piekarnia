@@ -7,11 +7,11 @@
 #define CZAS_WYPIEKU 1 //czas wypieku
 #define MAX_WYPIEKI 4 //maxymalna ilosc wypiekow na raz
 // Klucze 
-#define KEY_SEM 5678    // semafory
+#define KEY_SEM 1290    // semafory
 #define KEY_MSG 3121    // kolejka kom
 #define KEY_MSG_KLIENT_KASJER 3544    // kolejka kom kleint - kasjer
 
-#define MAX_KLIENTOW 9
+#define MAX_KLIENTOW 10
 
 #define MAX_SZTUKI 15 // maksymalna ilosc wypiekow na podajniku
 

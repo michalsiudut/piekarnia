@@ -8,6 +8,7 @@
 #include <unistd.h>
 #include <signal.h>
 #include <string.h>
+#include <errno.h>
 #include "definicje.h"
 
 Wypieki losuj_wypiek();
@@ -30,6 +31,7 @@ void P(int semid, int i, int x) {
         perror(GREEN"Błąd przy operacji P()"RESET);
         exit(1);
     }
+   
 }
 
 void usuniecie_kolejki(int sig) {
@@ -81,6 +83,8 @@ int main() {
     semid = semget(KEY_SEM, 16, IPC_CREAT | 0666);
     if (semid == -1) {
         perror(GREEN"Błąd przy tworzeniu semafora"RESET);
+        printf(RED"errno: %d"RESET"\n", errno);
+        printf("KEY_SEM: %d, liczba semaforów: %d\n", KEY_SEM, 16);
         exit(1);
     }
     init_semaphore(semid);

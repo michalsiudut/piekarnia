@@ -97,7 +97,6 @@ void odbieraj_wypiek(int msgid, int semid, int ile_rzeczy, int msgid_kasjer)
         czy_odebrano = 1;
         czy_wystarczajaco = 1;
     }
-    sleep(5);
 
 
     
@@ -113,7 +112,7 @@ void odbieraj_wypiek(int msgid, int semid, int ile_rzeczy, int msgid_kasjer)
     }
    
     }
-
+    sleep(4); // Podchodzenie do kasy, płacenie za towar
 }
 
 int main()
