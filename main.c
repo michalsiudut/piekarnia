@@ -46,14 +46,6 @@ int main() {
         exit(1);
     }
 
-    pid_t kierownik_pid = fork();
-    if (kierownik_pid == 0) {
-        setpgid(0, main_pid);
-        char main_pid_str[10];
-        snprintf(main_pid_str, sizeof(main_pid_str), "%d", main_pid); // Konwersja main_pid na string
-        execl("./kierownik", "kierownik", main_pid_str, NULL); // Przekazanie main_pid jako argument
-        perror("Błąd przy uruchamianiu kierownika");
-    }
 
     int msgid_kasjer = msgget(KEY_MSG_KLIENT_KASJER, IPC_CREAT | IPC_EXCL | 0666); // twprzenie kolejki kom z klienta do kasjera
     if (msgid_kasjer < 0) {
@@ -69,6 +61,20 @@ int main() {
         perror(RED"Błąd przy uruchamianiu kasjera"RESET);
         exit(1);
     }
+
+    pid_t kierownik_pid = fork();
+    if (kierownik_pid == 0) {
+        setpgid(0, main_pid);
+        char main_pid_str[10];
+        char kasjer_pid_str[10];
+        char piekarz_pid_str[10];
+        snprintf(main_pid_str, sizeof(main_pid_str), "%d", main_pid); // Konwersja main_pid na string
+        snprintf(kasjer_pid_str, sizeof(kasjer_pid_str), "%d", kasjer_pid);
+        snprintf(piekarz_pid_str, sizeof(piekarz_pid_str), "%d", piekarz_pid);
+        execl("./kierownik", "kierownik", main_pid_str, kasjer_pid_str, piekarz_pid_str, NULL); 
+        perror("Błąd przy uruchamianiu kierownika");
+    }
+
 
 
      // Inicjalizacja semafora

@@ -4,7 +4,14 @@
 #include <sys/ipc.h>
 #include <sys/sem.h>
 #include <signal.h>
+#include <errno.h>
 #include "definicje.h"
+
+_Bool m = 0;
+
+void handle_sigusr2(int sig) {
+    printf(BLUE"Kasjer: Otrzymałem sygnał inwentaryzacji (SIGUSR2)."RESET"\n");
+}
 
 
 void sem_op(int sem_id, int op) {
@@ -40,6 +47,7 @@ void handle_sigterm(int sig) {
 
 int main() {
     signal(SIGTERM, handle_sigterm);
+    signal(SIGUSR2, handle_sigusr2); // Przypisanie obsługi SIGUSR2
     int pid_kasjera = getpid();
     int sem_id = semget(SEM_KEY_DO_SKLEPU, 1, 0);
     if (sem_id == -1) {
@@ -55,12 +63,17 @@ int main() {
 
     Wypieki wypieki;  // Struktura do odbioru wiadomości
 
-
+    ssize_t msg_rcv_result;
     while (1) {
         // Odbieranie wiadomości z kolejki
-        if (msgrcv(msgid, &wypieki, sizeof(wypieki) - sizeof(long), 0, 0) == -1) {
-            perror(BLUE"Błąd msgrcv"RESET );
-            break;
+        while ((msg_rcv_result = msgrcv(msgid, &wypieki, sizeof(wypieki) - sizeof(long), 0, 0)) == -1 && errno == EINTR) {
+        // Czekamy na zakończenie sygnału i próbujemy ponownie
+        continue;
+        }
+
+        if (msg_rcv_result == -1) {
+            perror("Błąd msgrcv");
+            exit(1);
         }
         Wypieki wypieki_tab[20];
         wypieki_tab[0] = wypieki;

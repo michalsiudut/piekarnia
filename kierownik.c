@@ -14,6 +14,22 @@ void ewakuacja(pid_t pgid) {
     printf(CYAN"Kierownik: Ogłaszam ewakuację!"RESET"\n");
     usun_wszystko(pgid);
 }
+void inwentaryzacja(pid_t kasjer, pid_t piekarz) {
+    printf(CYAN"Kierownik: Ogłaszam inwentaryzację!"RESET"\n");
+
+    // Wysyłanie sygnału SIGUSR2 do procesów kasjera i piekarza w grupie procesów
+    if (kill(kasjer, SIGUSR2) == -1) {
+        perror(CYAN"Nie udało się wysłać sygnału SIGUSR2 do grupy procesów!"RESET);
+        exit(1);
+    }
+    
+    if (kill(piekarz, SIGUSR2) == -1) {
+        perror(CYAN"Nie udało się wysłać sygnału SIGUSR2 do grupy procesów!"RESET);
+        exit(1);
+    }
+    
+    printf(CYAN"Przeprowadzono inwentaryzację."RESET"\n");
+}
 
 void usun_wszystko(pid_t pgid) {
     printf(CYAN"Zamykam piekarnię i sprzątam zasoby..."RESET"\n");
@@ -40,7 +56,7 @@ void usun_wszystko(pid_t pgid) {
      if (msgctl(msgid2, IPC_RMID, NULL) == -1) {
         perror(CYAN"Błąd przy usuwaniu kolejki"RESET);
     } else {
-        printf(CYAN"Kolejka komunikatów została usunięta."RESET"\n");
+        printf(CYAN"Kolejka komunikatów (klient kasjer) została usunięta."RESET"\n");
     }
     // usuwanie semaforow
     if (semctl(semid, 0, IPC_RMID) == -1) {
@@ -70,16 +86,16 @@ void usun_wszystko(pid_t pgid) {
 
 int main(int argc, char *argv[]) {
 
-    if (argc < 2) {
-        fprintf(stderr, CYAN"Błąd: Brak przekazanego PID grupy procesów!"RESET"\n");
-        exit(1);
-    }
+
+    pid_t kasjer_pid = atoi(argv[2]); // Konwersja kasjer_pid z argumentu
+    pid_t piekarz_pid = atoi(argv[3]); // Konwersja piekarz_pid z argumentu
 
     pid_t pgid = atoi(argv[1]); // Odczytanie PID grupy procesów z argumentów
     printf(CYAN"Siema, jestem kierownikiem piekarni! Monitoruję grupę procesów GID: %d"RESET"\n", pgid);
+    printf(CYAN"kasjer: %d, piekarz: %d"RESET"\n", kasjer_pid, piekarz_pid);
 
     sleep(25); 
     //ewakuacja(pgid); // Wywołanie ewakuacji
-
+    inwentaryzacja(kasjer_pid,piekarz_pid);
     return 0;
 }

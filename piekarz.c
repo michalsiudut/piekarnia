@@ -13,6 +13,14 @@
 
 Wypieki losuj_wypiek();
 
+_Bool m = 0;
+
+void handle_sigusr2(int sig) {
+    printf(GREEN"Piekarz: Otrzymałem sygnał inwentaryzacji (SIGUSR2)."RESET"\n");
+    m = 1;
+    // Możesz dodać dodatkowe czynności, które piekarz powinien wykonać podczas inwentaryzacji, np. przerwanie produkcji.
+}
+
 void init_semaphore(int semid) {
     for(int i = 0; i < 16; i++){
     if (semctl(semid, i, SETVAL, MAX_SZTUKI) == -1) {
@@ -27,9 +35,14 @@ void P(int semid, int i, int x) {
     op.sem_op = -i; // Zmniejsz wartość semafora
     op.sem_flg = 0;
     //printf("numer semafora: %d , pomniejszona wartosc smeafora: %d\n", x, i);
-    if (semop(semid, &op, 1) == -1) {
-        perror(GREEN"Błąd przy operacji P()"RESET);
-        exit(1);
+        while (semop(semid, &op, 1) == -1) {
+        if (errno == EINTR) {
+            continue;
+        } else {
+            // Inny błąd
+            perror("Błąd przy operacji P()");
+            exit(1);
+        }
     }
    
 }
@@ -72,6 +85,7 @@ int main() {
     srand(time(NULL));
     signal(SIGINT, usuniecie_kolejki);
     signal(SIGTERM, usuniecie_kolejki);
+    signal(SIGUSR2, handle_sigusr2); // Przypisanie obsługi SIGUSR2
     // uzyskanie dostepu do kolejki
     msgid = msgget(KEY_MSG, IPC_CREAT | IPC_EXCL | 0666);
     if (msgid < 0) {
