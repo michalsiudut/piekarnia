@@ -117,11 +117,14 @@ int main() {
         waitpid(klienty_pids[j], NULL, 0);
     }
 
-
     // Wysłanie sygnału do piekarza, aby zakończył pracę
     kill(piekarz_pid, SIGTERM);
     // jak i do kasjera
     kill(kasjer_pid, SIGTERM);
+
+    // do keirownika tez
+    kill(kierownik_pid, SIGTERM);
+    
     // czekamy na nich
     waitpid(kasjer_pid, NULL, 0);
     waitpid(piekarz_pid, NULL, 0);   // Czekanie na piekarza

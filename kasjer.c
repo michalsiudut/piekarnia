@@ -7,10 +7,13 @@
 #include <errno.h>
 #include "definicje.h"
 
-_Bool m = 0;
+int iterator = 0;
+_Bool inwentaryzacja_aktywna = 0;
+pid_t pid_kasjera;
 
 void handle_sigusr2(int sig) {
     printf(BLUE"Kasjer: Otrzymałem sygnał inwentaryzacji (SIGUSR2)."RESET"\n");
+    inwentaryzacja_aktywna = 1;
 }
 
 
@@ -26,8 +29,6 @@ void sem_op(int sem_id, int op) {
 }
 
 void handle_sigterm(int sig) {
-    printf(BLUE"Kasjer: Zamykam kasę."RESET "\n"); //  tu bedzie sczyscienie kolejek i wogole
-
 
     // uzyskanie dostepu do kolejki
     int msgid = msgget(KEY_MSG_KLIENT_KASJER, 0666);
@@ -42,13 +43,20 @@ void handle_sigterm(int sig) {
     } else {
         printf(BLUE"Kolejka komunikatów klient - kasjer została usunięta."RESET "\n");
     }
+
+    if(inwentaryzacja_aktywna){
+        printf(BLUE"[INWENTARYZACJA] Wypisuje ilość produktów sprzedanych przez kasjera [%d]: %d\n"RESET,pid_kasjera, iterator);
+    }
+
+    printf(BLUE"Kasjer: Zamykam kasę."RESET "\n"); 
+
     exit(0);
 }
 
 int main() {
     signal(SIGTERM, handle_sigterm);
     signal(SIGUSR2, handle_sigusr2); // Przypisanie obsługi SIGUSR2
-    int pid_kasjera = getpid();
+    pid_kasjera = getpid();
     int sem_id = semget(SEM_KEY_DO_SKLEPU, 1, 0);
     if (sem_id == -1) {
         perror(BLUE"Błąd uzyskiwania dostępu do semafora"RESET );
@@ -75,6 +83,7 @@ int main() {
             perror("Błąd msgrcv");
             exit(1);
         }
+        iterator += wypieki.liczba_sztuk;
         Wypieki wypieki_tab[20];
         wypieki_tab[0] = wypieki;
         for(int i = 1; i < wypieki.liczba_obrotow; i++){
@@ -85,6 +94,7 @@ int main() {
             }
             //printf("\t\tWypiek: %s | typ wypieku: %d | Ilość: %d | Cena: %d | pid: %d\n", wypieki.nazwa,wypieki.mtype, wypieki.liczba_sztuk, wypieki.cena, wypieki.pid_klienta);
             wypieki_tab[i] = wypieki;
+            iterator += wypieki.liczba_sztuk;
         }       
 
         // Przetwarzanie zakończone

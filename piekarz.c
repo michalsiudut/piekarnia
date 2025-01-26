@@ -13,12 +13,13 @@
 
 Wypieki losuj_wypiek();
 
-_Bool m = 0;
+_Bool inwentaryzacja_aktywna = 0;
+Wypieki historia_wpiekow[1000];
+int iterator = 0;
 
 void handle_sigusr2(int sig) {
     printf(GREEN"Piekarz: Otrzymałem sygnał inwentaryzacji (SIGUSR2)."RESET"\n");
-    m = 1;
-    // Możesz dodać dodatkowe czynności, które piekarz powinien wykonać podczas inwentaryzacji, np. przerwanie produkcji.
+    inwentaryzacja_aktywna = 1;
 }
 
 void init_semaphore(int semid) {
@@ -36,7 +37,7 @@ void P(int semid, int i, int x) {
     op.sem_flg = 0;
     //printf("numer semafora: %d , pomniejszona wartosc smeafora: %d\n", x, i);
         while (semop(semid, &op, 1) == -1) {
-        if (errno == EINTR) {
+        if (errno == EINTR) { // jesli sygnal SIGUSR1 lub SIGUSR2 przerywa to sprawdzamy czy to bylo to jak to to  dzialamy a jak nie to blad
             continue;
         } else {
             // Inny błąd
@@ -52,23 +53,31 @@ void usuniecie_kolejki(int sig) {
     int semid = semget(KEY_SEM, 1, 0666);
     // uzyskanie dostepu do kolejki
     int msgid = msgget(KEY_MSG, 0666);
-    if (msgid < 0) {
+    if (msgid == -1 ) {
         perror(GREEN"Błąd przy uzyskiwaniu dostępu do kolejki"RESET);
         exit(1);
     }
-
     // usuwanie kolejki
     if (msgctl(msgid, IPC_RMID, NULL) == -1) {
         perror(GREEN"Błąd przy usuwaniu kolejki"RESET);
     } else {
         printf(GREEN"Kolejka komunikatów została usunięta.\n"RESET);
     }
+    /*
     // usuwanie semaforow
     if (semctl(semid, 0, IPC_RMID) == -1) {
         perror(GREEN"Błąd przy usuwaniu semafora"RESET);
         exit(1);
     }
-
+    */
+    if(inwentaryzacja_aktywna){
+        printf(GREEN"[INWENTARYZACJA] Wypisuje ilość produktów wyprodukowane przez piekarza: %d\n"RESET, iterator);
+    }else{
+        if (semctl(semid, 0, IPC_RMID) == -1) {
+            perror(GREEN"Błąd przy usuwaniu semafora"RESET);
+            exit(1);
+        }
+    }
     exit(0);
 }
 
@@ -104,11 +113,10 @@ int main() {
     init_semaphore(semid);
 
     printf(GREEN"Piekarz: Rozpoczynam produkcję wypieków.\n"RESET);
-    int iterator = 0;
     while (1) {
         wypieki = losuj_wypiek();
         Wypieki wszystkie_wypieki[500];
-        wszystkie_wypieki[iterator] = wypieki;
+        historia_wpiekow[iterator] = wypieki;
         P(semid, wypieki.liczba_sztuk, wypieki.mtype);
         // wysylanie losowego wypieku od kolejki
         if (msgsnd(msgid, &wypieki, sizeof(wypieki)- sizeof(long), 0) < 0) {
@@ -121,7 +129,8 @@ int main() {
                wypieki.nazwa, wypieki.liczba_sztuk, wypieki.cena);
 
         usleep(200000);; // 0.3 sekund na wypiek
-        iterator++;
+        iterator += wypieki.liczba_sztuk;
+        // printf("%d\n", iterator);
     }
 
     return 0;
