@@ -135,7 +135,7 @@ int main()
     while (1)
     {
         wypieki = losuj_wypiek();
-        Wypieki wszystkie_wypieki[500];
+        Wypieki wszystkie_wypieki[50000];
         historia_wpiekow[iterator] = wypieki;
         P(semid, wypieki.liczba_sztuk, wypieki.mtype);
         // wysylanie losowego wypieku od kolejki
@@ -149,7 +149,7 @@ int main()
         printf(GREEN "Piekarz: Wyprodukowano produkt %s w ilości %d w cenie %d." RESET "\n",
                wypieki.nazwa, wypieki.liczba_sztuk, wypieki.cena);
 
-        usleep(200000);
+        usleep(100000);
         ; // 0.3 sekund na wypiek
         iterator += wypieki.liczba_sztuk;
         // printf("%d\n", iterator);

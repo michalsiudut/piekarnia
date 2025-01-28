@@ -42,6 +42,7 @@ void handle_sigterm(int sig)
     }
 
     // usuwanie kolejki
+
     if (msgctl(msgid, IPC_RMID, NULL) == -1)
     {
         perror(BLUE "Błąd przy usuwaniu kolejki" RESET);
@@ -125,7 +126,7 @@ int main()
         printf(BLUE "DLUZNOSC CALKOWAITA: %d   | Wystawiono przez kasjera: %d" RESET "\n", suma_cen, pid_kasjera);
         sem_op(sem_id, 1);
 
-        usleep(300000);
+        usleep(100000);
         ;
     }
     return 0;

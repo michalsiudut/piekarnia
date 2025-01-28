@@ -45,39 +45,42 @@ void handle_sigterm(int sig)
 {
     printf(CYAN "Kierownik: Otrzymałem SIGTERM, zaczynam kończenie pracy.\n" RESET);
 
-    // Uzyskanie dostępu do semaforów
-    int semid = semget(KEY_SEM, 16, 0600);
-    if (semid == -1)
-    {
-        perror(CYAN "Błąd przy uzyskiwaniu dostępu do zbioru semaforów" RESET);
-        exit(1);
-    }
-
     iterator = 0;
-
-    // Przechodzenie przez wszystkie 16 semaforów
-    for (int i = 0; i < 16; i++)
+    if (inwentaryzacja_aktywna)
     {
-        int wartosc_semafora = semctl(semid, i, GETVAL);
-        if (wartosc_semafora == -1)
+        // Przechodzenie przez wszystkie 16 semaforów
+
+        // Uzyskanie dostępu do semaforów
+        int semid = semget(KEY_SEM, 16, 0600);
+        if (semid == -1)
         {
-            perror(CYAN "Błąd odczytu wartości semafora" RESET);
+            perror(CYAN "Błąd przy uzyskiwaniu dostępu do zbioru semaforów" RESET);
             exit(1);
         }
-        iterator += (15 - wartosc_semafora); // Ilość wypieków na taśmie
-    }
 
-    // Podsumowanie
-    printf(CYAN "[INWENTARYZACJA] Wypisuje ilość produktów na taśmach przez kierownika: %d\n" RESET, iterator);
+        for (int i = 0; i < 16; i++)
+        {
+            int wartosc_semafora = semctl(semid, i, GETVAL);
+            if (wartosc_semafora == -1)
+            {
+                perror(CYAN "Błąd odczytu wartości semafora" RESET);
+                exit(1);
+            }
+            iterator += (15 - wartosc_semafora); // Ilość wypieków na taśmie
+        }
 
-    // Usunięcie zbioru semaforów
-    if (semctl(semid, 0, IPC_RMID) == -1)
-    {
-        perror(CYAN "Błąd przy usuwaniu zbioru semaforów" RESET);
-    }
-    else
-    {
-        printf(CYAN "Zbiór semaforów został usunięty.\n" RESET);
+        // Podsumowanie
+        printf(CYAN "[INWENTARYZACJA] Wypisuje ilość produktów na taśmach przez kierownika: %d\n" RESET, iterator);
+
+        // Usunięcie zbioru semaforów
+        if (semctl(semid, 0, IPC_RMID) == -1)
+        {
+            perror(CYAN "Błąd przy usuwaniu zbioru semaforów" RESET);
+        }
+        else
+        {
+            printf(CYAN "Zbiór semaforów został usunięty.\n" RESET);
+        }
     }
 
     // Zakończenie procesu kierownika
@@ -150,12 +153,13 @@ int main(int argc, char *argv[])
     pid_t piekarz_pid = atoi(argv[3]); // Konwersja piekarz_pid z argumentu
 
     pid_t pgid = atoi(argv[1]); // Odczytanie PID grupy procesów z argumentów
-    printf(CYAN "Siema, jestem kierownikiem piekarni! Monitoruję grupę procesów GID: %d" RESET "\n", pgid);
+    printf(CYAN "Jestem kierownikiem piekarni! Monitoruję grupę procesów GID: %d" RESET "\n", pgid);
     printf(CYAN "kasjer: %d, piekarz: %d" RESET "\n", kasjer_pid, piekarz_pid);
 
-    sleep(25);
-    // ewakuacja(pgid); // Wywołanie ewakuacji
-    inwentaryzacja(kasjer_pid, piekarz_pid);
+    sleep(2);
+    // inwentaryzacja(kasjer_pid, piekarz_pid);
+    sleep(2);
+    ewakuacja(pgid); // Wywołanie ewakuacji
     pause();
 
     return 0;

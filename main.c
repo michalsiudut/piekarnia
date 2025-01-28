@@ -94,7 +94,7 @@ int main()
         exit(1);
     }
 
-    sleep(2); // dajemy piekarzowi przed otwarciem piekarni upiec pare wypiekow
+    sleep(1); // dajemy piekarzowi przed otwarciem piekarni upiec pare wypiekow
     time_t start_time = time(NULL);
     int czas_trwania = 30; // Symulacja trwa 30 sekund
     pid_t klienty_pids[NUM_CLIENTS];
@@ -111,8 +111,7 @@ int main()
             perror(RED "Błąd przy uruchamianiu klienta" RESET);
             exit(1);
         }
-        int randomowy_czas_przyjscia_klientow = losuj_liczbe(1, 2); // Nowi klienci co 1–2 sekund
-        sleep(randomowy_czas_przyjscia_klientow);
+        sleep(1);
         i++;
     }
     printf(RED "Zamknięto wejście dla kientów.\n" RESET);

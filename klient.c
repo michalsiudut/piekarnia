@@ -110,7 +110,7 @@ void odbieraj_wypiek(int msgid, int semid, int ile_rzeczy, int msgid_kasjer)
             exit(1);
         }
     }
-    sleep(4); // Podchodzenie do kasy, płacenie za towar
+    sleep(1); // Podchodzenie do kasy, płacenie za towar
 }
 
 int main()
